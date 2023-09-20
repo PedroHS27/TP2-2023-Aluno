@@ -62,5 +62,8 @@ app.use(express.json())
     
  })
 
+ app.use((req, res, next) => {
+    res.send({erro: true, msg: "Rota não definida no servidor."})
+});
 
  app.listen(PORT, ()=>console.log(`servidor rodando na porta ${PORT}`))
