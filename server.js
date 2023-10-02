@@ -2,68 +2,52 @@
 const express = require('express')
 const app = express()
 const PORT = 3000
-const crud = require('./crud')
+const mongoose = require('mongoose')
+    
+const userModel = mongoose.model('contas', new Schema({
+   email: String,
+   password: String
+}))
 
+mongoose.connect('mongodb://localhost:27017/meubanco')
+ .then(()=>{
+
+   
 app.use(express.json())
 
 
- app.get(`/api/:email`, (req,res)=>{
-   const email = req.params.email 
-   const getCrud = new crud()
-   const usuarioExiste = getCrud.contaExiste(email)
-
-   if (usuarioExiste) {
-    const usuario = getCrud.lerDados(email)
-    res.send({message: `email: ${usuario.email} password: ${usuario.password}`})
-      return
-   }
-
-   res.send(`essa conta não existe`)
- })
-
- app.post('/api',(req,res)=>{
-    const conta = req.body
-    const postCrud = new crud()
-    const usuarioExiste = postCrud.contaExiste(conta.email)
-
-    if (!usuarioExiste) {
-      postCrud.criaConta(conta.email, req.body)
-      res.send({message: `usuario ${conta.email} cadastrado com sucesso`})
-      return
-    }
-    res.send({message: `esta conta já existe`})
+app.get(`/api/:email`, async (req,res)=>{
+  const email = req.params.email 
+  const usuarioExiste = await userModel.findOne({email})
+  res.json(usuarioExiste)
 })
 
- app.put('/api',(req,res)=>{
-    const dados = req.body
-    const putCrud = new crud()
-    const usuarioExiste = putCrud.contaExiste(dados.email)
+app.post('/api', async (req,res)=>{
+   const conta = req.body
+   const contaCriada = await userModel.create(conta)
+   res.json(contaCriada)
+})
 
-    if (usuarioExiste) {
-        putCrud.atualizaConta(dados.email, dados)
-        res.send({message: `usuario ${dados.email} atualizado com sucesso`}) 
-        return
-    }
-    res.send({message: `essa conta não existe`})
- })
+app.delete('/api',async(req,res)=>{ 
+   const conta = req.body
+   const contaDeletada = await userModel.deleteOne(conta)
+   res.json(contaDeletada)
+})
 
- app.delete('/api',(req,res)=>{ 
-    const email = req.body.email
-    const deleteCrud = new crud()
-    const usuarioExiste = deleteCrud.contaExiste(email)
+app.put('/api', async (req,res)=>{
+   const dados = req.body
+   const usuarioAtualizado = await userModel.findOneAndUpdate(
+      {email: dados.email, password: dados.password},
+      {email: dados.newEmail, password: dados.newPassword},
+      {returnDocument: 'after'}) 
+      res.json(usuarioAtualizado)
+})
 
 
-    if (usuarioExiste) {      
-    deleteCrud.apagarConta(email)
-    res.send({message: `usuario ${email} deletado com sucesso`})
-    return
-    }
-    res.send({message: `essa conta não existe`})
-    
- })
-
- app.use((req, res, next) => {
-    res.send({erro: true, msg: "Rota não definida no servidor."})
+app.use((req, res, next) => {
+   res.send({erro: true, msg: "Rota não definida no servidor."})
 });
 
- app.listen(PORT, ()=>console.log(`servidor rodando na porta ${PORT}`))
+app.listen(PORT, ()=>console.log(`servidor rodando na porta ${PORT}`))
+
+ })
