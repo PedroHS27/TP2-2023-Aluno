@@ -11,11 +11,11 @@ const userModel = mongoose.model('contas', new Schema({
 }))
 
 if(process.env.NODE_ENV === 'DEV'){
-    dotenv.config('./config/.env.dev')
+    dotenv.config({path: './config/.env.dev'})
 }
 
 if(process.env.NODE_ENV === 'PROD'){
-    dotenv.config('./config/.env.prod')
+    dotenv.config({path: './config/.env.prod'})
 }
 
 mongoose.connect(process.env.URL)
