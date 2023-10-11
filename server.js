@@ -3,13 +3,22 @@ const express = require('express')
 const app = express()
 const PORT = 3000
 const mongoose = require('mongoose')
+const dotenv = require('dotenv')
     
 const userModel = mongoose.model('contas', new Schema({
    email: String,
    password: String
 }))
 
-mongoose.connect('mongodb://localhost:27017/meubanco')
+if(process.env.NODE_ENV === 'DEV'){
+    dotenv.config('./config/.env.dev')
+}
+
+if(process.env.NODE_ENV === 'PROD'){
+    dotenv.config('./config/.env.prod')
+}
+
+mongoose.connect(process.env.URL)
  .then(()=>{
 
    
