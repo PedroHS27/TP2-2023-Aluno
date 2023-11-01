@@ -5,7 +5,7 @@ const PORT = 3000
 const mongoose = require('mongoose')
 const dotenv = require('dotenv')
     
-const userModel = mongoose.model('contas', new Schema({
+const userModel = mongoose.model('contas', new mongoose.Schema({
    email: String,
    password: String
 }))
@@ -18,32 +18,34 @@ if(process.env.NODE_ENV === 'PROD'){
     dotenv.config({path: './config/.env.prod'})
 }
 
-mongoose.connect(process.env.URL)
+mongoose.connect('mongodb://localhost:27017/database')
  .then(()=>{
 
    
 app.use(express.json())
 
 
-app.get(`/api/:email`, async (req,res)=>{
-  const email = req.params.email 
-  const usuarioExiste = await userModel.findOne({email})
+app.post(`/get`, async (req,res)=>{
+  const usuarioExiste = await userModel.findOne({email: req.body.email, password: req.body.password})
+  if(usuarioExiste === null) {
+    return res.send('conta não existe')
+  }
   res.json(usuarioExiste)
 })
 
-app.post('/api', async (req,res)=>{
+app.post('/create', async (req,res)=>{
    const conta = req.body
    const contaCriada = await userModel.create(conta)
    res.json(contaCriada)
 })
 
-app.delete('/api',async(req,res)=>{ 
+app.delete('/delete',async(req,res)=>{ 
    const conta = req.body
    const contaDeletada = await userModel.deleteOne(conta)
    res.json(contaDeletada)
 })
 
-app.put('/api', async (req,res)=>{
+app.put('/update', async (req,res)=>{
    const dados = req.body
    const usuarioAtualizado = await userModel.findOneAndUpdate(
       {email: dados.email, password: dados.password},
